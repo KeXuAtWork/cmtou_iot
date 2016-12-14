@@ -27,8 +27,9 @@ import com.cmtou.microservices.daos.StorageDao;
 @Service
 public class ImageRecognitionService {
 
+    @Value("${image.dir}")
+    private String destDir;
     
-    private String destDir = "/Users/kxu/";
     private final String height = "720";
     private final String width = "960";
  

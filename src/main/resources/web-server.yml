@@ -13,6 +13,9 @@ remote:
 image:
   capture: false
 
+audio:
+  filepath: /Users/kxu/Downloads/whistle.mp3
+
 aws: 
   bucket: dummy_cache
   accesskey: AKIAJQUHVN6KWRWCSFFQ
@@ -25,7 +28,7 @@ spring:
   
 image:
   capture: true
-
+  dir: /Users/kxu/
 ---
 
 
