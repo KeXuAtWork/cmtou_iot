@@ -1,0 +1,35 @@
+#---------------------- Spring properties Default ---------------------------                 
+spring:
+  application:
+    name: web-service  # Identify this application
+    
+# HTTP Server
+server:
+  port: 3333   # HTTP (Tomcat) port    
+  
+remote: 
+  endpoint: http://0794baa3.ngrok.io
+
+image:
+  capture: false
+
+aws: 
+  bucket: dummy_cache
+  accesskey: AKIAJQUHVN6KWRWCSFFQ
+  secretkey: M45CkBehcWunQAvj7+6GG8syMlHfyCWnybLN5glI
+---
+
+#---------------------- Spring properties QA -------------------------------
+spring:
+    profiles: HUB
+  
+image:
+  capture: true
+
+---
+
+
+#---------------------- Spring properties PROD -------------------------------
+spring:
+    profiles: DEVICE
+
