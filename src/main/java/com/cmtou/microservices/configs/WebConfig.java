@@ -35,7 +35,7 @@ public class WebConfig {
 	}
 	
 	
-	@Scheduled(fixedRate = 60000)
+	@Scheduled(fixedRate = 8000)
 	public void updateMembers(){
 	    try {
 	        

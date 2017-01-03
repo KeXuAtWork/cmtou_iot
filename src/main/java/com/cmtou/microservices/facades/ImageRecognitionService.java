@@ -3,6 +3,8 @@ package com.cmtou.microservices.facades;
 import java.io.File;
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
@@ -18,6 +20,7 @@ import com.amazonaws.services.rekognition.model.S3Object;
 import com.cmtou.microservices.daos.ImageRecognitionDao;
 import com.cmtou.microservices.daos.StorageDao;
 
+
 /**
  * Service to execute Raspi Still and feed image to S3 and then to Rekognition API
  * 
@@ -26,7 +29,10 @@ import com.cmtou.microservices.daos.StorageDao;
  */
 @Service
 public class ImageRecognitionService {
-
+    private static final Logger logger = LoggerFactory.getLogger(ImageRecognitionService.class);
+    
+    
+    
     @Value("${image.dir}")
     private String destDir;
     
@@ -48,67 +54,77 @@ public class ImageRecognitionService {
     @Value("${aws.bucket}")
     private String bucket;
     
+    
+    
     public void captureImage()
     {
+      try{  
         
       //Raspistill image capture
-      /**
-      String startInstruction = "/usr/bin/raspistill -t 0 -h "+height+ " -w "+width+ " -o "+destDir;
-      String imageName = "image-"+System.currentTimeMillis()+ ".jpg";
-      String fileName = startInstruction + imageName;
-      executeCommand(fileName);  
-      //TODO needs to add in a wait time
-      **/
-      String imageName = "squirrel.jpg";   
-        
-        
-      File createdImage = new File(destDir+imageName);
+
+          String startInstruction = "/usr/bin/raspistill -t 0 -h "+height+ " -w "+width+ " -o "+destDir;
+          String imageName = "image.jpg";
+          String fileName = startInstruction + imageName;
+          
+          logger.info("Capturing Image Now: "+startInstruction + imageName);
+          executeCommand(fileName);  
+          //TODO needs to add in a wait time
+          
+          
+          //String imageName = "squirrel.jpg";   
+            
+          logger.info("searching for image in: "+destDir+imageName);
+          File createdImage = new File(destDir+imageName);
+          
+          if(createdImage.exists())
+          {
+              logger.info("Image exists");
+              //Feed image to S3
+              String s3FileName = System.currentTimeMillis()+"-"+imageName;
+              storageDao.addFile(s3FileName, createdImage);
+              logger.info("Added image to S3");
+              
+              //Classify using Recognition API
+              DetectLabelsRequest request = new DetectLabelsRequest()
+                      .withImage(new Image()
+                              .withS3Object(new S3Object()
+                                      .withName(s3FileName)
+                                      .withBucket(bucket)))
+                      .withMaxLabels(10)
+                      .withMinConfidence(77F);
+              logger.info("Calling Recoginition API");
+              DetectLabelsResult result = imageRecognitionDao.classifyImage(request);
+              
+              boolean mammal = false;
+              boolean squirrel = false;
+              
+              for(Label label : result.getLabels()){
+                  if(label.getName().equalsIgnoreCase("mammal"))
+                      mammal = true;
+                  
+                  if(label.getName().equalsIgnoreCase("squirrel"))
+                      squirrel = true;
+              }
+              
+              
+              if(mammal && squirrel){
+                  logger.info("Identified Squirrel");
+                  RestTemplate restTemplate = new RestTemplate();
+                  ResponseEntity<String> response = restTemplate.exchange(audioDeviceEndpoint+"/emitAlarm", HttpMethod.GET, null, String.class);
+                  
+                  //Call device to emit alarm
+                  //audioDeterrentService.emitAlert();
+              }
+          }
+          else {
+              logger.info("Image was not captured");
+          }
       
-      if(createdImage.exists())
-      {
-          //Feed image to S3
-          String s3FileName = System.currentTimeMillis()+"-"+imageName;
-          storageDao.addFile(s3FileName, createdImage);
+      }catch(Exception e){
           
+          e.printStackTrace();
           
-          //Classify using Recognition API
-          DetectLabelsRequest request = new DetectLabelsRequest()
-                  .withImage(new Image()
-                          .withS3Object(new S3Object()
-                                  .withName(s3FileName)
-                                  .withBucket(bucket)))
-                  .withMaxLabels(10)
-                  .withMinConfidence(77F);
-          
-          DetectLabelsResult result = imageRecognitionDao.classifyImage(request);
-          
-          boolean mammal = false;
-          boolean squirrel = false;
-          
-          for(Label label : result.getLabels()){
-              if(label.getName().equalsIgnoreCase("mammal"))
-                  mammal = true;
-              
-              if(label.getName().equalsIgnoreCase("squirrel"))
-                  squirrel = true;
-          }
-          
-          if(mammal && squirrel){
-              RestTemplate restTemplate = new RestTemplate();
-              ResponseEntity<String> response = restTemplate.exchange(audioDeviceEndpoint+"/emitAlarm", HttpMethod.GET, null, String.class);
-              
-              //Call device to emit alarm
-              //audioDeterrentService.emitAlert();
-              
-              
-              
-          }
-          
-         
-         
       }
-      
-     
         
     }
     

@@ -4,6 +4,7 @@ import javazoom.jl.player.Player;
 import java.io.*;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 
@@ -16,13 +17,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class AudioDeterrentService {
 
-    @Value("${audio.filepath}")
+    @Value("${audio.sirenFilepath}")
     private String audio;
+    
+    
     
     
     /**
      * Emit high frequency Alert
      */
+    @Async
     public void emitAlert()
     {
         try{

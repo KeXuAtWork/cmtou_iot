@@ -12,9 +12,11 @@ remote:
 
 image:
   capture: false
+  dir:  /home/pi/demo/
 
 audio:
-  filepath: /Users/kxu/Downloads/whistle.mp3
+  sirenFilepath: /Users/kxu/Downloads/siren-cut.mp3
+  whistleFilepath: /Users/kxu/Downloads/whistle.mp3
 
 aws: 
   bucket: dummy_cache
@@ -28,7 +30,7 @@ spring:
   
 image:
   capture: true
-  dir: /Users/kxu/
+  dir:  /home/pi/demo/
 ---
 
 
